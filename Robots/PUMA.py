@@ -72,7 +72,7 @@ class PUMAManipulator:
                           [self.q_symbols[2], 0, self.l3, 0, self.m3, I3]])
 
         
-        print('Starting to calculate dynamic parameters for Stanford Manipulator')
+        print('Starting to calculate dynamic parameters for PUMA Manipulator')
         print('_________________________________________________________')
         self.D, self.C, self.g_ = Dynamic_Equations_from_Dhmi(Dhmi)
 
@@ -148,6 +148,9 @@ class PUMAManipulator:
 
         self.anim_init()
         self.fig.canvas.manager.set_window_title('Your own PUMA Manipulator: ARKO')
+
+    def stop(self):
+        plt.close(self.fig)
 
     def anim_init(self):
         q1, q2, q3, *_ = self.state

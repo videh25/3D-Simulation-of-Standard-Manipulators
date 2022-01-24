@@ -52,15 +52,26 @@ class Multivariable_Position_Controller:
         v = -self.K0*q - self.K1*qdot + r
 
         u = (D + self.Jeff_mat)@v + h
-        V = u*self.Manipulator.Km/self.Manipulator.R/self.Manipulator.r 
+        V = u*self.Manipulator.Km/self.Manipulator.R/self.Manipulator.r
+
+        curr_state = self.Manipulator.get_state()[:self.nDOF]
+        error = np.array(self.target_state[:self.nDOF] - curr_state)
+        self.previous_error = error
+
+        self.error_matrix[0,:] = self.error_matrix[1,:]
+        self.error_matrix[1,:] = self.error_matrix[2,:]
+        self.error_matrix[2,:] = self.previous_error.T
         return V
 
     def achieve_target_state(self):
-        err_mat = self.error_matrix
-        err_mat[:,2] = self.error_matrix[:,2]*0.01
-        while (((np.linalg.norm(err_mat[0,:2]) + np.linalg.norm(err_mat[1,:2]) + np.linalg.norm(err_mat[2,:2]))/3) > 5e-2) or ((np.abs(err_mat[0,0]) + np.abs(err_mat[1,0]) + np.abs(err_mat[2,0])/3) > 8e-2) or np.linalg.norm(self.Manipulator.state[3:]) > 1e-2:
+        err_mat = self.error_matrix.astype(float)
+        while (np.linalg.norm(err_mat[:,0]) > 5e-2) or (np.linalg.norm(err_mat[:,1]) > 3e-2) or (np.linalg.norm(err_mat[:,2]) > 9e-2):
             self.Manipulator.apply_voltages(self.calculate_output_voltages())
-
+            # print(np.linalg.norm(err_mat[:,0]) , np.linalg.norm(err_mat[:,1]) , np.linalg.norm(err_mat[:,2]))
+            # print(np.linalg.norm(err_mat[:,0]) > 4e-2, np.linalg.norm(err_mat[:,1]) > 3e-2, np.linalg.norm(err_mat[:,2]) > 9e-2)
+            err_mat = self.error_matrix.astype(float)
+            if (np.linalg.norm((self.Manipulator.state[self.nDOF: 2*self.nDOF]).astype(float)) < 5e-3):
+                err_mat = np.zeros((3,3))
 
     def follow_trajectory(self, q_mat, qdot_mat, qdot2_mat, t, ee_pos_values = None):
         # t: Total time for execution of trajectory

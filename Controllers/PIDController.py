@@ -4,10 +4,11 @@ import sympy as sp
 
 class PID_Position_Controller:
     # Simply applies individual joint PID control to achieve the target position
-    def __init__(self, RRMmodel, Kp = [1450, 431, 1e4], Ki = [0,0,0], Kd = [578, 170, 658]):
+    def __init__(self, RRMmodel, Kp = None, Ki = None, Kd = None):
         self.Manipulator = RRMmodel
 
-        if RRMmodel.type == "SCARA":
+        ## Kp,Kd Calculations
+        #For "SCARA":
             # Near the given coordinates
             # For CRITICAL DAMPING
             # For joint 1----
@@ -19,11 +20,8 @@ class PID_Position_Controller:
             # For joint 3----
             # Jeff = 11
             # Beff = 2 ===> For Kp = 1e4 ===> omega_n = 30; Kd = 2*30*11 - 2 = 658
-            self.Kp = np.array([1450, 431, 1e4])
-            self.Ki = np.array([0,0,0]) 
-            self.Kd = np.array([578, 170, 658])
             
-        elif RRMmodel.type == "PUMA":
+        #For "PUMA":
             # Near the given coordinates (5,7,0)
             # For CRITICAL DAMPING
             # For joint 1----
@@ -35,11 +33,8 @@ class PID_Position_Controller:
             # For joint 3----
             # Jeff = 8.33 + 1 = 9.33
             # Beff = 2 ===> For omega_n = 10, Kp = 9.33*10**2 = 933; Kd = 2*10*9.33 - 2 = 186.6
-            self.Kp = np.array([150, 804, 233.25])
-            self.Ki = np.array([0,0,0]) 
-            self.Kd = np.array([58, 319.6, 91.3])
-        
-        elif RRMmodel.type == "Stanford":
+
+        #For "Stanford":
             # Near the given coordinates (2,3,0)
             # For CRITICAL DAMPING
             # For joint 1----
@@ -51,10 +46,42 @@ class PID_Position_Controller:
             # For joint 3----
             # Jeff = 1 + 1 = 2
             # Beff = 2 ===> For omega_n = 10, Kp = 2*10**2 = 200; Kd = 2*10*2 - 2 = 38
-            self.Kp = np.array([534, 1367, 200])
-            self.Ki = np.array([0,0,0]) 
-            self.Kd = np.array([104.6, 271.4, 38])
+
+        if Kp is None:
+            if RRMmodel.type == "SCARA":
+                self.Kp = np.array([1450, 431, 1e4])
             
+            elif RRMmodel.type == "PUMA":
+                self.Kp = np.array([150, 804, 233.25])
+            
+            elif RRMmodel.type == "Stanford":
+                self.Kp = np.array([534, 1367, 200])
+        else:
+            self.Kp = np.array(Kp)
+        
+        if Kd is None:
+            if RRMmodel.type == "SCARA":
+                self.Kd = np.array([578, 170, 658])
+            
+            elif RRMmodel.type == "PUMA":
+                self.Kd = np.array([58, 319.6, 91.3])
+        
+            elif RRMmodel.type == "Stanford":
+                self.Kd = np.array([104.6, 271.4, 38])
+        else:
+            self.Kd = np.array(Kd)
+
+        if Ki is None:
+            if RRMmodel.type == "SCARA":
+                self.Ki = np.array([0,0,0])
+            
+            elif RRMmodel.type == "PUMA":
+                self.Ki = np.array([0,0,0])
+        
+            elif RRMmodel.type == "Stanford":
+                self.Ki = np.array([0,0,0])
+        else:
+            self.Ki = np.array(Ki)
 
         self.nDOF = int(len(self.Manipulator.state)/2)
         self.target_state = np.array(2*self.nDOF*[0.])
@@ -86,6 +113,7 @@ class PID_Position_Controller:
     def calculate_output_voltages(self):
         curr_state = self.Manipulator.get_state()[:self.nDOF]
         error = np.array(self.target_state[:self.nDOF] - curr_state)
+        # print(error)
 
         diff_error = self.target_state[self.nDOF:] - self.Manipulator.get_state()[self.nDOF:]
         self.integral_error = self.integral_error  + (error + self.previous_error)*self.Manipulator.dt/2
@@ -95,15 +123,27 @@ class PID_Position_Controller:
         self.error_matrix[0,:] = self.error_matrix[1,:]
         self.error_matrix[1,:] = self.error_matrix[2,:]
         self.error_matrix[2,:] = self.previous_error.T
+        # print(self.error_matrix)
 
         V = ((self.Kp*error + self.Ki*self.integral_error + self.Kd*diff_error))
         return sp.Matrix(V)
 
     def achieve_target_state(self):
-        err_mat = self.error_matrix
-        err_mat[:,2] = self.error_matrix[:,2]*0.01
-        while (((np.linalg.norm(err_mat[0,:2]) + np.linalg.norm(err_mat[1,:2]) + np.linalg.norm(err_mat[2,:2]))/3) > 5e-2) or ((np.abs(err_mat[0,0]) + np.abs(err_mat[1,0]) + np.abs(err_mat[2,0])/3) > 8e-2) or np.linalg.norm(self.Manipulator.state[3:]) > 1e-2:
+        err_mat = self.error_matrix.astype(float)
+        # err_mat[:,2] = (self.error_matrix[:,2]).astype(float)*0.01
+        while ((np.linalg.norm(err_mat[:3,0]) > 2e-2) or (np.linalg.norm(err_mat[:3,1]) > 3e-2) or (np.linalg.norm(err_mat[:3,2]) > 10e-2)):
+            # print(np.linalg.norm(err_mat[0,:2]) + np.linalg.norm(err_mat[1,:2]) + np.linalg.norm(err_mat[2,:2])/3)
+            # print((np.abs(err_mat[0,0]) + np.abs(err_mat[1,0]) + np.abs(err_mat[2,0])/3))
+            # print(np.linalg.norm(self.Manipulator.state[3:].astype(float)))
+            # print(err_mat)
+            # print((err_mat[:3,2]))
+            # print(np.linalg.norm(err_mat[:3,2]))
+            # print(np.linalg.norm(err_mat[:3,0]) > 2e-2, np.linalg.norm(err_mat[:3,1]) > 3e-2, np.linalg.norm(err_mat[:3,2]) > 10e-2)
             self.Manipulator.apply_voltages(self.calculate_output_voltages())
+            err_mat = self.error_matrix.astype(float)
+            if (np.linalg.norm((self.Manipulator.state[self.nDOF: 2*self.nDOF]).astype(float)) < 5e-3):
+                err_mat = np.zeros((3,3))
+
 
 
     def follow_trajectory(self, q_mat, qdot_mat, t, ee_pos_values = None):

@@ -127,6 +127,9 @@ class StanfordManipulator:
         self.fig.canvas.manager.set_window_title('Your own Stanford Manipulator: ARKO')
 
         self.anim_init()
+    
+    def stop(self):
+        plt.close(self.fig)
 
     def anim_init(self):
         q1, q2, d3, *_ = self.state
@@ -187,7 +190,7 @@ d3dot(m/s):    {:.2f}'''.format(float(self.time), float(self.state[0]), float(se
             state_array[2] = np.float64(max(min(self.d3_max, state_array[2]), 0))
             state_array[5] = (state_array[2] - self.state[2])/self.dt
         if (abs(state_array[5]) > 5):
-            print("Clipped the speed of prismatic joint")
+            # print("Clipped the speed of prismatic joint")
             state_array[5] = np.float64(max(min(5, state_array[5]), -5))
 
         self.state = state_array

@@ -135,6 +135,9 @@ class SCARAManipulator:
 
         self.anim_init()
         self.fig.canvas.manager.set_window_title('Your own SCARA Manipulator: ARKO')
+    
+    def stop(self):
+        plt.close(self.fig)
 
     def anim_init(self):
         q1, q2, d3, *_ = self.state
