@@ -14,6 +14,7 @@ from .Tools import *
 
 class PUMAManipulator:
     def __init__(self,l1 = 5, l2 = 5, l3 = 5, q1 = 0, q2 = 0, q3 = 0, q1_dot = 0, q2_dot = 0, q3_dot = 0, m1 = 1, m2 = 1, m3 = 1):
+        self.type = 'PUMA'
         self.l1 = l1        #Link1 length (m)
         self.l2 = l2        #Link2 length (m)
         self.l3 = l3        #Link3 length (m)
@@ -23,6 +24,7 @@ class PUMAManipulator:
         self.m3 = m3        #Mass3 length (kg)
 
         self.state = np.array([q1, q2, q3, q1_dot, q2_dot, q3_dot]) #[(rad), (rad), (m), (rad/s), (rad/s), (m/s)]
+        self.last_joint_accelerations = np.array([0, 0, 0])
 
         self.time = 0       #time elapsed since start (sec)
 
@@ -132,6 +134,7 @@ class PUMAManipulator:
 
         self.time += self.dt
 
+        self.last_joint_accelerations = np.squeeze(np.asarray(q_dot2))
         self.set_state(np.array([float(q_n[0]), float(q_n[1]), float(q_n[2]), float(q_dot_n[0]), float(q_dot_n[1]), float(q_dot_n[2])]))
         return self.state
 
@@ -208,10 +211,10 @@ q3dot(m/s):    {:.2f}'''.format(float(self.time), float(self.state[0]), float(se
         self.set_position(self.inv_kin(position))
 
     def get_ee_position(self):
-        return np.array([arr[1] for arr in self.extension_line.get_data_3d()])
+        return np.array([arr[1] for arr in self.link3_line.get_data_3d()])
 
-    def reset(self, position = (0,0,1)):
-        #Resets the RRM at a given position
+    def reset(self, position = (0,0,0)):
+        #Resets the Manipulator at a given position
         self.time = 0
         self.set_position(position)
 

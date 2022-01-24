@@ -6,9 +6,55 @@ class PID_Position_Controller:
     # Simply applies individual joint PID control to achieve the target position
     def __init__(self, RRMmodel, Kp = [1450, 431, 1e4], Ki = [0,0,0], Kd = [578, 170, 658]):
         self.Manipulator = RRMmodel
-        self.Kp = np.array(Kp)
-        self.Ki = np.array(Ki) 
-        self.Kd = np.array(Kd)
+
+        if RRMmodel.type == "SCARA":
+            # Near the given coordinates
+            # For CRITICAL DAMPING
+            # For joint 1----
+            # Jeff = 58
+            # Beff = 2  ===> For omega_n = 5, Kp = 58*5**2 = 1450; Kd = 2*5*58 - 2 = 578
+            # For joint 2----
+            # Jeff = 17.25
+            # Beff = 2 ===> For omega_n = 5, Kp = 17.25*5**2 = 431; Kd = 2*5*17.25 - 2 = 170
+            # For joint 3----
+            # Jeff = 11
+            # Beff = 2 ===> For Kp = 1e4 ===> omega_n = 30; Kd = 2*30*11 - 2 = 658
+            self.Kp = np.array([1450, 431, 1e4])
+            self.Ki = np.array([0,0,0]) 
+            self.Kd = np.array([578, 170, 658])
+            
+        elif RRMmodel.type == "PUMA":
+            # Near the given coordinates (5,7,0)
+            # For CRITICAL DAMPING
+            # For joint 1----
+            # Jeff = 1 + 5 = 6
+            # Beff = 2  ===> For omega_n = 10, Kp = 6*10**2 = 600; Kd = 2*6*10 - 2 = 118
+            # For joint 2----
+            # Jeff = 31.16 + 1 = 32.16
+            # Beff = 2 ===> For omega_n = 10, Kp = 32.16*10**2 = 3216; Kd = 2*10*32.16 - 2 = 641.2
+            # For joint 3----
+            # Jeff = 8.33 + 1 = 9.33
+            # Beff = 2 ===> For omega_n = 10, Kp = 9.33*10**2 = 933; Kd = 2*10*9.33 - 2 = 186.6
+            self.Kp = np.array([150, 804, 233.25])
+            self.Ki = np.array([0,0,0]) 
+            self.Kd = np.array([58, 319.6, 91.3])
+        
+        elif RRMmodel.type == "Stanford":
+            # Near the given coordinates (2,3,0)
+            # For CRITICAL DAMPING
+            # For joint 1----
+            # Jeff = 1 + 4.33 = 5.33
+            # Beff = 2  ===> For omega_n = 10, Kp = 5.33*10**2 = 534; Kd = 2*5.33*10 - 2 = 104.6
+            # For joint 2----
+            # Jeff = 12.67 + 1 = 13.67
+            # Beff = 2 ===> For omega_n = 10, Kp = 13.67*10**2 = 1367; Kd = 2*10*13.67 - 2 = 271.4
+            # For joint 3----
+            # Jeff = 1 + 1 = 2
+            # Beff = 2 ===> For omega_n = 10, Kp = 2*10**2 = 200; Kd = 2*10*2 - 2 = 38
+            self.Kp = np.array([534, 1367, 200])
+            self.Ki = np.array([0,0,0]) 
+            self.Kd = np.array([104.6, 271.4, 38])
+            
 
         self.nDOF = int(len(self.Manipulator.state)/2)
         self.target_state = np.array(2*self.nDOF*[0.])

@@ -16,6 +16,7 @@ from .Tools import *
 
 class SCARAManipulator:
     def __init__(self,l1 = 0.5, l2 = 0.25, l3 = 0.25, q1 = 0, q2 = 0, d3 = 0.3, q1_dot = 0, q2_dot = 0, d3_dot = 0, m1 = 100, m2 = 1000, m3=1000, m4=10, d3_max = 0.5):
+        self.type = "SCARA"
         self.l1 = l1        #Link1 length (m)
         self.l2 = l2        #Link2 length (m)
         self.l3 = l3        #Link3 length (m)

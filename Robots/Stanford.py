@@ -14,6 +14,7 @@ from .Tools import *
 
 class StanfordManipulator:
     def __init__(self,l1 = 5, l2 = 5, q1 = 0, q2 = 0, d3 = 1, q1_dot = 0, q2_dot = 0, d3_dot = 0, m1 = 1, m2 = 1, d3_max = 6):
+        self.type = "Stanford"
         self.l1 = l1        #Link1 length (m)
         self.l2 = l2        #Link2 length (m)
 
@@ -23,6 +24,7 @@ class StanfordManipulator:
         self.d3_max = d3_max    #Max prismatic extension (m)
 
         self.state = np.array([q1, q2, d3, q1_dot, q2_dot, d3_dot]) #[(rad), (rad), (m), (rad/s), (rad/s), (m/s)]
+        self.last_joint_accelerations = np.array([0, 0, 0])
 
         self.time = 0       #time elapsed since start (sec)
 
@@ -111,6 +113,7 @@ class StanfordManipulator:
 
         self.time += self.dt
 
+        self.last_joint_accelerations = np.squeeze(np.asarray(q_dot2))
         self.set_state(np.array([q_n[0], q_n[1], q_n[2], q_dot_n[0], q_dot_n[1], q_dot_n[2]]))
         return self.state
 
