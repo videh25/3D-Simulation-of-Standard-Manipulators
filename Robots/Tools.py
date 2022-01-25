@@ -9,7 +9,7 @@ def DHMatrix2Homo_and_Jacob(Hmat, prismatic=[]):
     # Arguments:
             #Hmat: DH parameter matrix
                 # DH Parameter Matrix [nx4 Matrix]
-                # Number of links automatically calculated from the size of matrix
+                # Number of links automatically estimated from the size of matrix
                 # theta (rotation about z), d (translation about z), a(translation about x), alpha(rotation about x)
                 # First columns of params are frame 0-->1 and last columns are frame (n-1)-->n :: n is the end effector frame
             #prismatic: An array of the joints that are prismatic: Joint corresponding to qi is ith joint
@@ -110,16 +110,14 @@ def DV_Calculator(Dhmi, g_dir ='-z', prismatic = []):
         # Dhmi: Dhmi (DH + Mass + Inetria Tensor) array
             # [[theta1,      d1,     l1,     alpha1,    m1,     I1],
             #  [theta2,      d2,     l2,     alpha2,    m2,     I2]]
-            # I1, I2 are 3x3 inertia tensors wrt the position of next link frame 
+            # I1, I2 are 3x3 inertia tensors wrt the link frame 
         # g_dir: Direction of gravity
             # Can be 'x', 'y', 'z', '-x', '-y', '-z'
-            #prismatic: An array of the joints that are prismatic: Joint corresponding to qi is ith joint
+        # prismatic: An array of the joints that are prismatic: Joint corresponding to qi is ith joint
 
     # Note:
         #Assumes the centres of mass of links to lie at the middle
-        #A link is assumed with given mass connecting each frame
-        #Also, assumes the links to have moment of inertia of (m*l**2)/12
-        #mass_arr is symbolic matrix
+        #A link is assumed along given mass connecting each frame
         #Dhmi is a matrix with manipulator lengths, link masses passed as constants and joint variables passed as symbolic constants
         #g_dir is used to calculate the V, specifies the direction of g; Default is taken as -z
         #Can also pass everything as symbolic constants

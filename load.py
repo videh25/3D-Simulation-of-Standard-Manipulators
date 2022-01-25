@@ -1,8 +1,8 @@
 from Robots import *
 from Controllers import * 
 
-print("INFO:: Robots available: PUMAManipulator; SCARAManipulator; StanfordManipulator")
-print("INFO:: Controllers available: PID_Position_Controller;  ComputedTorque_FF_Position_Controller; FeedForward_Position_Controller; Multivariable_Position_Controller")
+print("ROBOTS AVAILABLE: \n  -PUMAManipulator \n  -SCARAManipulator \n  -StanfordManipulator")
+print("CONTROLLERS AVAILABLE: \n  -PID_Position_Controller  \n  -ComputedTorque_FF_Position_Controller \n  -FeedForward_Position_Controller \n  -Multivariable_Position_Controller")
 
 def load(robot_class, controller_class = None):
     if controller_class is not None:
