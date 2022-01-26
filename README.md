@@ -145,3 +145,7 @@
      - Returns:
        - A matrix containing joint accelerations in symbolic form.
 
+
+## Interactive Mode Video
+https://user-images.githubusercontent.com/66770479/151116014-7d0bc6e3-84d1-45e0-813a-2ca0c4e9953b.mp4
+
